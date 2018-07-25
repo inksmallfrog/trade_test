@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "bollinger-bands": "^3.0.1",
+    "crypto": "^1.0.1",
+    "logger": "^0.0.1",
+    "moment": "^2.22.2",
+    "mongoose": "^5.2.5",
+    "pako": "^1.0.6",
+    "request": "^2.87.0",
+    "request-promise-native": "^1.0.5",
+    "socks-proxy-agent": "^4.0.1",
+    "socks5-https-client": "^1.2.1",
+    "ws": "^6.0.0"
+  }
+}

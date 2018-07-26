@@ -1,25 +1,41 @@
 const Coin = require('./module/Coin');
 const Account = require('./module/Account');
-const ws = require('./common/websockets');
+
 const pako = require('pako');
+
+const ws = require('./common/websocket');
+
+const BASE_COIN = 'usdt';
 
 let account = new Account('4355134');
 let coins = [];
 
+let timeChecker = null;
+
 ws.on('open', ()=>{
-    for(let key in account.positions){
-        coins.push(new Coin(key + 'usdt', account));
+    if(coins.length > 0){   //重连接只需要重新订阅Kline
+        coins.forEach(coin=>coin.subscribeKline());
+    }else{
+        for(let key in account.positions){
+            coins.push(new Coin(key + BASE_COIN, account));
+        }
     }
-    console.log('connected to market!')
 });
 
 ws.on('message', (data)=>{
+    //解压gzip数据
     const res = JSON.parse(pako.inflate(data, { to: 'string' }));
-    if(res.ping){
-        console.log(new Date() + 'ping');
+
+    if(res.ping){   //响应ping, 5s一次
         ws.send(JSON.stringify({"pong": res.ping}));
+
+        //10秒未响应，则尝试重连
+        if(timeChecker) clearTimeout(timeChecker);
+        timeChecker = setTimeout(()=>{
+            ws.reconnect();
+        }, 10000);
         return;
-    }else{
+    }else{  //响应数据
         coins.find(coin=>coin.handle(res));
     }
 })

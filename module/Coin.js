@@ -2,7 +2,6 @@ const BollingerBands = require('./BollingerBands');
 const ws = require('../common/websockets');
 const Strategy = require('../strategies/BollStrategy');
 const strategy = new Strategy();
-const fs = require("fs");
 
 let totalErned = 0;
 
@@ -60,11 +59,14 @@ module.exports = class{
                     this.lastKlineId = kline.id;
                 }
             });
-            ws.send(JSON.stringify({
-                "sub": `market.${this.key}.kline.15min`,
-                "id": `id${this.key}`
-            }));
+            this.scribeKline;
             return true;
         }
+    }
+    scribeKline(){
+        ws.send(JSON.stringify({
+            "sub": `market.${this.key}.kline.15min`,
+            "id": `id${this.key}`
+        }));
     }
 }

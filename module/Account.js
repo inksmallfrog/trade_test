@@ -82,7 +82,7 @@ module.exports = class{
             coinInfo.position = positionAfterBuy;
             this.usdtAvailable -= (1 + (+this.tradeFee)) * newInvested;
             
-            await buy(coin + 'usdt', newInvested, this.id);
+            //await buy(coin + 'usdt', newInvested, this.id);
             updatePosition(coin, coinInfo);
             addTrade(coin, 'buy', price, newInvested / price);
             logger.info('buy,' + coin + ',' + price);
@@ -101,7 +101,7 @@ module.exports = class{
             coinInfo.position = 0;
             this.usdtAvailable += price * (1 - (+this.tradeFee)) * coinInfo.volumn;
             
-            await sell(coin + 'usdt', newInvested, this.id);
+            //await sell(coin + 'usdt', newInvested, this.id);
             updatePosition(coin, coinInfo);
             addTrade(coin, 'sell', price, coinInfo.volumn);
             logger.info('sell,' + coin + ',' + price);

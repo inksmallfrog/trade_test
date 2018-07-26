@@ -33,14 +33,6 @@ exports.buy = async function(symbol, amount, accountId){
             url: `/v1/order/orders/place`,
             method: 'POST'
         });
-        console.log(rUrl);
-        console.log(getOption(rUrl, 'POST', {
-            'account-id': accountId,
-            'amount': amount,
-            'source': 'api',
-            'symbol': symbol,
-            'type': 'buy-market'
-        }))
         let res = await request.post(getOption(rUrl, 'POST', {
             'account-id': accountId,
             'amount': '' + amount,
@@ -63,7 +55,6 @@ exports.sell = async function(symbol, amount, accountId){
             method: 'POST'
         });
         console.log('call sell api - ');
-        console.log(rUrl);
         let res = await request.post(getOption(rUrl, 'POST', {
             'account-id': accountId,
             'amount': amount,

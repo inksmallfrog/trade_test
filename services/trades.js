@@ -31,31 +31,23 @@ exports.buy = async function(symbol, amount, accountId){
     try{
         const rUrl = signature({
             url: `/v1/order/orders/place`,
-            paramsArray: [
-                {
-                    key: 'account-id',
-                    value: accountId
-                },
-                {
-                    key: 'amount',
-                    value: amount
-                },
-                {
-                    key: 'source',
-                    value: 'api'
-                },
-                {
-                    key: 'symbol',
-                    value: symbol
-                },
-                {
-                    key: 'type',
-                    value: 'buy-market'
-                }
-            ]
+            method: 'POST'
         });
-        console.log('call buy api - ');
-        let res = await request(getOption(rUrl));
+        console.log(rUrl);
+        console.log(getOption(rUrl, 'POST', {
+            'account-id': accountId,
+            'amount': amount,
+            'source': 'api',
+            'symbol': symbol,
+            'type': 'buy-market'
+        }))
+        let res = await request.post(getOption(rUrl, 'POST', {
+            'account-id': accountId,
+            'amount': '' + amount,
+            'source': 'api',
+            'symbol': symbol,
+            'type': 'buy-market'
+        }));
         console.log('buy api result: ' + res.data);
         return res.data.data;
     }catch(e){
@@ -68,31 +60,17 @@ exports.sell = async function(symbol, amount, accountId){
     try{
         const rUrl = signature({
             url: `/v1/order/orders/place`,
-            paramsArray: [
-                {
-                    key: 'account-id',
-                    value: accountId
-                },
-                {
-                    key: 'amount',
-                    value: amount
-                },
-                {
-                    key: 'source',
-                    value: 'api'
-                },
-                {
-                    key: 'symbol',
-                    value: symbol
-                },
-                {
-                    key: 'type',
-                    value: 'sell-market'
-                }
-            ]
+            method: 'POST'
         });
         console.log('call sell api - ');
-        let res = await request(getOption(rUrl));
+        console.log(rUrl);
+        let res = await request.post(getOption(rUrl, 'POST', {
+            'account-id': accountId,
+            'amount': amount,
+            'source': 'api',
+            'symbol': symbol,
+            'type': 'sell-market'
+        }));
         console.log('sell api result: ' + res.data);
         return res.data.data;
     }catch(e){

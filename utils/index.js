@@ -29,11 +29,6 @@ function formatNow(){
     return date.Format('yyyy-MM-ddThh:mm:ss');
 }
 
-function generateParamStr(paramsArray){
-    console.log(res);
-    return res;
-}
-
 function getSignatureParamInfo(){
     return [{
         "key": "AccessKeyId",
@@ -50,9 +45,10 @@ function getSignatureParamInfo(){
     }];
 }
 
-exports.getOption = (url) => {
+exports.getOption = (url, method, form) => {
+    if(!method) method = 'GET';
     return {
-        method: "GET",
+        method,
         url: baseURL + url,
         strictSSL: true,
         agentClass: Agent,
@@ -61,7 +57,8 @@ exports.getOption = (url) => {
             'Accept-Language': 'zh-cn',
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
         },
-        json: true
+        json: true,
+        body: form
     }
 }
 
@@ -72,7 +69,7 @@ exports.signature = (params) => {
     if(!params.baseUrl){ params.baseUrl = 'api.huobi.pro'; }
     if(!params.url){ params.url = '/v1/order/orders'; }
     if(!params.paramsArray){ params.paramsArray = []; }
-    params.paramsArray = params.paramsArray.concat(getSignatureParamInfo());
+    params.paramsArray = params.paramsArray.concat(getSignatureParamInfo());    
 
     const paramsStr = params.paramsArray.map(p=> p.key + "=" + encodeURIComponent(p.value));
     let paramStr = paramsStr.sort().join("&");

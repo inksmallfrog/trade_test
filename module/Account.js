@@ -67,13 +67,19 @@ module.exports = class{
         let newInvested = 0;
         if(coinInfo.position > 0){
             if(coinInfo.cost <= price){return;}
-            positionAfterBuy = 1.25 * coinInfo.position;
-            newInvested = 0.05 * coinInfo.usdtInvested;
+            positionAfterBuy = 1.05 * coinInfo.position;
+            newInvested = 0.05 * coinInfo.position * coinInfo.usdtInvested;
+            console.log('???');
         }else{
+            console.log(this.usdtAvailable);
             newInvested = (0.25 * coinInfo.hope) * this.usdtAvailable;
             positionAfterBuy = newInvested / this.totalUsdt;
+            console.log((0.25 * coinInfo.hope) * this.usdtAvailable)
         }
+        console.log("positionAfterBuy:" + positionAfterBuy);
+        console.log("positionHope:" + coinInfo.hope);
         if(positionAfterBuy <= coinInfo.hope){
+            console.log('buy!!!');
             const newVolumn = newInvested / price;
             const newCost = (coinInfo.cost * coinInfo.volumn + newInvested * (1 + (+this.tradeFee))) / (+coinInfo.volumn + (+newVolumn));
             coinInfo.cost = newCost;
@@ -81,8 +87,7 @@ module.exports = class{
             coinInfo.usdtInvested += +newInvested;
             coinInfo.position = positionAfterBuy;
             this.usdtAvailable -= (1 + (+this.tradeFee)) * newInvested;
-            
-            //await buy(coin + 'usdt', newInvested, this.id);
+            await buy(coin + 'usdt', newInvested, this.id);
             updatePosition(coin, coinInfo);
             addTrade(coin, 'buy', price, newInvested / price);
             logger.info('buy,' + coin + ',' + price);
@@ -101,7 +106,7 @@ module.exports = class{
             coinInfo.position = 0;
             this.usdtAvailable += price * (1 - (+this.tradeFee)) * coinInfo.volumn;
             
-            //await sell(coin + 'usdt', newInvested, this.id);
+            await sell(coin + 'usdt', newInvested, this.id);
             updatePosition(coin, coinInfo);
             addTrade(coin, 'sell', price, coinInfo.volumn);
             logger.info('sell,' + coin + ',' + price);

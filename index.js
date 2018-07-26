@@ -4,6 +4,9 @@ const Account = require('./module/Account');
 const pako = require('pako');
 
 const ws = require('./common/websocket');
+const logger = require('./utils/logger');
+
+const { buy } = require('./services/trades');
 
 const BASE_COIN = 'usdt';
 
@@ -27,6 +30,7 @@ ws.on('message', (data)=>{
     const res = JSON.parse(pako.inflate(data, { to: 'string' }));
 
     if(res.ping){   //响应ping, 5s一次
+        logger.info('ping');
         ws.send(JSON.stringify({"pong": res.ping}));
 
         //10秒未响应，则尝试重连
@@ -41,5 +45,3 @@ ws.on('message', (data)=>{
 })
 
 ws.open();
-
-

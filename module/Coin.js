@@ -39,11 +39,13 @@ module.exports = class{
                 close: message.tick.close,
                 boll: this.boll.boolingerBands
             }
+            console.log(currency + ": " + message.tick.close + "[" + data.boll.lower[data.boll.lower.length - 1] + "]" + " up:" + (message.tick.close - data.boll.lower[data.boll.lower.length - 1]));
             const res = strategy.run(data);
-            if(res.buy && this.buyLock){
+            if(res.buy && !this.buyLock){
+                console.log('buy');
                 this.account.buy(this.coinName, message.tick.close);
                 this.buyLock = true;
-                this.setTimeout(() => {
+                setTimeout(() => {
                     this.buyLock = false;
                 }, 900 * 1000);
             }

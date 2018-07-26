@@ -1,5 +1,5 @@
 const BollingerBands = require('./BollingerBands');
-const ws = require('../common/websockets');
+const ws = require('../common/websocket');
 const Strategy = require('../strategies/BollStrategy');
 const strategy = new Strategy();
 
@@ -59,11 +59,11 @@ module.exports = class{
                     this.lastKlineId = kline.id;
                 }
             });
-            this.scribeKline;
+            this.subscribeKline();
             return true;
         }
     }
-    scribeKline(){
+    subscribeKline(){
         ws.send(JSON.stringify({
             "sub": `market.${this.key}.kline.15min`,
             "id": `id${this.key}`

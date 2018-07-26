@@ -13,7 +13,8 @@ class WebSocketClient{
     }
     open(){
         this.instance = new WebSocket(this.url, this.config);
-        logger.info('websocket connect!');
+        logger.info('connected to market!');
+        console.log('connected to market');
         for(let key in this.listeners){
             this.instance.on(key, this.listeners[key]);
         }

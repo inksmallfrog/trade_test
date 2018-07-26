@@ -40,4 +40,6 @@ ws.on('message', (data)=>{
     }
 })
 
+ws.open();
+
 

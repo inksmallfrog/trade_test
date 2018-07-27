@@ -1,9 +1,9 @@
 const BollingerBands = require('./BollingerBands');
 const ws = require('../common/websocket');
 const Strategy = require('../strategies/BollStrategy');
+const { errorLogger, strategyLogger } = require('../utils/logger');
+
 const strategy = new Strategy();
-const logger = require('../utils/logger');
-let totalErned = 0;
 
 module.exports = class{
     constructor(key, account){
@@ -35,22 +35,30 @@ module.exports = class{
             }
             
             const data = {
+                coin: this.key,
                 cost: this.account.positions[this.coinName].cost,
                 close: message.tick.close,
                 boll: this.boll.boolingerBands
             }
-            const res = strategy.run(data);
+
+            let res;
+            try{
+                res = strategy.run(data);
+            }catch(e){
+                errorLogger.error('run strategy error!', data, e);
+            }
+            
             if(res.buy && !this.buyLock){
-                logger.info('strategy buy!');
                 this.buyLock = await this.account.buy(this.coinName, message.tick.close);
                 if(this.buyLock){
-	          setTimeout(() => {
-                     this.buyLock = false;
-                  }, 900 * 1000);
+	                setTimeout(() => {
+                        this.buyLock = false;
+                    }, 900 * 1000);
                 }
+            }else if(this.buyLock){
+                strategyLogger.info('coin refused buy cauze buyLock');
             }
             if(res.sell){
-                logger.info('strategy sell!');
                 this.account.sell(this.coinName, message.tick.close);
             }
             return true;

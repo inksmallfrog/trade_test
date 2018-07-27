@@ -2,6 +2,7 @@
   "dependencies": {
     "bollinger-bands": "^3.0.1",
     "crypto": "^1.0.1",
+    "lodash": "^4.17.10",
     "logger": "^0.0.1",
     "moment": "^2.22.2",
     "mongoose": "^5.2.5",

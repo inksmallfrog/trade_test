@@ -79,6 +79,7 @@ class WebSocketClient{
     reconnect(e){
         logger.info('try to reconnect...');
         this.instance.removeAllListeners();
+        this.instance.close();
         this.open();
     }
 }

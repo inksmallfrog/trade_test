@@ -1,4 +1,3 @@
-const Agent = require('socks5-https-client/lib/Agent');
 const crypto = require('crypto');
 const { secret, accessKey } = require('../security');
 const moment = require('moment');
@@ -51,7 +50,6 @@ exports.getOption = (url, method, form) => {
         method,
         url: baseURL + url,
         strictSSL: true,
-        agentClass: Agent,
         headers: {
             "Content-Type": "application/json",
             'Accept-Language': 'zh-cn',

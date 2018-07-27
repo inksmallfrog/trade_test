@@ -69,17 +69,11 @@ module.exports = class{
             if(coinInfo.cost <= price){return;}
             positionAfterBuy = 1.05 * coinInfo.position;
             newInvested = 0.05 * coinInfo.position * coinInfo.usdtInvested;
-            console.log('???');
         }else{
-            console.log(this.usdtAvailable);
             newInvested = (0.25 * coinInfo.hope) * this.usdtAvailable;
             positionAfterBuy = newInvested / this.totalUsdt;
-            console.log((0.25 * coinInfo.hope) * this.usdtAvailable)
         }
-        console.log("positionAfterBuy:" + positionAfterBuy);
-        console.log("positionHope:" + coinInfo.hope);
         if(positionAfterBuy <= coinInfo.hope){
-            console.log('buy!!!');
             const newVolumn = newInvested / price;
             const newCost = (coinInfo.cost * coinInfo.volumn + newInvested * (1 + (+this.tradeFee))) / (+coinInfo.volumn + (+newVolumn));
             coinInfo.cost = newCost;
@@ -92,6 +86,10 @@ module.exports = class{
             addTrade(coin, 'buy', price, newInvested / price);
             logger.info('buy,' + coin + ',' + price);
             logger.info('usdtAvailable,' + this.usdtAvailable);
+            return true;
+        }else{
+            logger.info('account refused buy! reson: hopePosition - ' + coinInfo.hope + ' afterBuy - ' + positionAfterBuy);
+	    return false;
         }
     }
 

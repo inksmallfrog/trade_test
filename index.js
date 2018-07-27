@@ -40,7 +40,11 @@ ws.on('message', (data)=>{
         }, 10000);
         return;
     }else{  //响应数据
-        coins.find(coin=>coin.handle(res));
+        try{
+          coins.find(async (coin)=> await coin.handle(res));
+        }catch(e){
+          logger.error(e);
+        }
     }
 })
 

@@ -22,7 +22,7 @@ module.exports = class{
         }));
     }
 
-    handle(message){
+    async handle(message){
         if(message.ch){
             const currency = message.ch.split(".")[1];
             if(currency != this.key){ return false; }
@@ -39,17 +39,18 @@ module.exports = class{
                 close: message.tick.close,
                 boll: this.boll.boolingerBands
             }
-            logger.info(currency + ": " + message.tick.close + "[" + data.boll.lower[data.boll.lower.length - 1] + "]" + " up:" + (message.tick.close - data.boll.lower[data.boll.lower.length - 1]));
             const res = strategy.run(data);
             if(res.buy && !this.buyLock){
-                console.log('buy');
-                this.account.buy(this.coinName, message.tick.close);
-                this.buyLock = true;
-                setTimeout(() => {
-                    this.buyLock = false;
-                }, 900 * 1000);
+                logger.info('strategy buy!');
+                this.buyLock = await this.account.buy(this.coinName, message.tick.close);
+                if(this.buyLock){
+	          setTimeout(() => {
+                     this.buyLock = false;
+                  }, 900 * 1000);
+                }
             }
             if(res.sell){
+                logger.info('strategy sell!');
                 this.account.sell(this.coinName, message.tick.close);
             }
             return true;

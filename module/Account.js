@@ -1,20 +1,21 @@
 const { Balance, Position, Trade } = require('../services');
-const { errorLogger, tradeLogger, strategyLogger } = require('../utils/logger');
+const { strategyLogger } = require('../utils/logger');
 
 module.exports = class{
     constructor(config){
         this.id = config.accountId;
         this.baseCoin = config.baseCoin;
-        this.tradeFee = this.config.tradeFee;
-        this.positionFirstAdd = this.config.positionFirstAdd;
-        this.positionPerAdd = this.config.positionPerAdd;
+        this.tradeFee = config.tradeFee;
+        this.positionFirstAdd = config.positionFirstAdd;
+        this.positionPerAdd = config.positionPerAdd;
+        this.config = config;
 
         this.markedCoins = [];
         this.positions = {};
-        for(let key in this.config.hopePosition){
+        for(let key in config.hopePosition){
             this.markedCoins.push(key + this.baseCoin);
             this.positions[key] = {
-                hope: this.config.hopePosition[key],
+                hope: config.hopePosition[key],
                 current: 0,
                 volumn: 0,
                 cost: 0,

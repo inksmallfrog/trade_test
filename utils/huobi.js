@@ -105,7 +105,23 @@ exports.huobiHandle = ({url, method, query, body}) => {
     if(!method) method = DEFAULT_HTTP_METHOD;
 
     let queryStr = getQueryStr(query);
-    const signature = signature({method, url, queryStr});
-    queryStr += '&Signature=' + encodeURIComponent(signature);
+    const signatureStr = signature({method, url, queryStr});
+    queryStr += '&Signature=' + encodeURIComponent(signatureStr);
     return getRequestOpt({url, method, queryStr, body});
+}
+
+function obj2ArrayObj(obj){
+    if(typeof obj != 'object'){
+        throw new Error('[ERROR]: signature\'s param must be an object!');
+    }
+    let arr = [];
+    for(let key in obj){
+        if(obj.hasOwnProperty(key)){
+            arr.push({
+                key,
+                value: obj[key]
+            })
+        }
+    }
+    return arr;
 }

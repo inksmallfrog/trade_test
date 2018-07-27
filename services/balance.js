@@ -1,5 +1,5 @@
 const request = require("request-promise-native");
-const { getQueryStr, getRequestOpt, signature } = require("../utils/huobi");
+const { huobiHandle } = require("../utils/huobi");
 const { errorLogger } = require('../utils/logger');
 
 module.exports = {
@@ -7,6 +7,7 @@ module.exports = {
         try{
             const url = `/v1/account/accounts/${accountId}/balance`;
             let res = await request(huobiHandle({url}));
+            console.log(res);
             if(res.data && res.data.list){
                 return res.data.list.filter((coinBalance)=>{
                     return coinBalance.balance >= 0.01;

@@ -1,0 +1,4 @@
+module.exports = {
+    secretKey: "your secretKey here",
+    accessKey: "your accessKey here"
+}

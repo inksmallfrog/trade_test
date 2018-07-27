@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { secret, accessKey } = require('../security');
+const { secretKey, accessKey } = require('../security');
 const moment = require('moment');
 
 const baseURL = "https://api.huobi.pro";
@@ -74,6 +74,6 @@ exports.signature = (params) => {
 
     const str = [params.method, params.baseUrl, params.url, paramStr].join("\n");
 
-    let signature = crypto.createHmac("sha256", secret).update(str).digest('base64');
+    let signature = crypto.createHmac("sha256", secretKey).update(str).digest('base64');
     return params.url + "?" + paramStr + "&Signature=" + encodeURIComponent(signature);
 }

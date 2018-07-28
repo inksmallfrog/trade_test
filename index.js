@@ -41,11 +41,12 @@ ws.on('message', (data)=>{
         }, 10000);
         return;
     }else{  //响应数据
-        coins.find(async (coin)=> {
+        coins.find(coin => {
             try{
-                return await coin.handle(res);
+                return coin.handle(res);
             }catch(e){
                 errorLogger.error('coin:', coin, ',response:', res, ',error:', e);
+	        return true;
             }
         });
     }

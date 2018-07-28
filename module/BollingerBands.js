@@ -20,7 +20,7 @@ module.exports = class{
     }
     addData(data){
         if(data.close){
-            if(this.data.length == this.period * 2){
+            if(this.data.length == this.period + 1){
                 this.data.shift();
                 this.data.push(data.close);
                 this.calculateBoolingerBands();
@@ -28,7 +28,7 @@ module.exports = class{
                 this.data.push(data.close);
             }
         }else if(typeof +data == 'number'){
-            if(this.data.length == this.period * 2){
+            if(this.data.length == this.period + 1){
                 this.data.shift();
                 this.data.push(+data);
                 this.calculateBoolingerBands();

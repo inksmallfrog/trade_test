@@ -72,7 +72,7 @@ module.exports = class{
     }
 
     async buy(coin, price){
-        strategyLogger('ask to buy ' + coin + ' at ' + price);
+        strategyLogger.info('ask to buy ' + coin + ' at ' + price);
 
         let coinInfo = this.positions[coin];
         let positionAfterBuy = 0;
@@ -80,7 +80,7 @@ module.exports = class{
 
         if(coinInfo.position > 0){  //加仓
             if(coinInfo.cost <= price){
-                strategyLogger('refuse to buy! cauze price>=cost:' + price + '>=' + coinInfo.cost);
+                strategyLogger.info('refuse to buy! cauze price>=cost:' + price + '>=' + coinInfo.cost);
                 return false;
             }
 
@@ -93,7 +93,7 @@ module.exports = class{
         }
 
         if(positionAfterBuy <= coinInfo.hope){
-            strategyLogger('agree to buy ', coin, ' at ', price, ' positionAfterBuy:', positionAfterBuy, 'positionHope:', coinInfo.hope);
+            strategyLogger.info('agree to buy ', coin, ' at ', price, ' positionAfterBuy:', positionAfterBuy, 'positionHope:', coinInfo.hope);
 
             //计算数据
             const newVolumn = newInvested / price;
@@ -122,7 +122,7 @@ module.exports = class{
         let coinInfo = this.positions[coin];
         if(price * (1 - this.tradeFee) > coinInfo.cost && coinInfo.position > 0){
             const erned = (price * (1 - this.tradeFee) - coinInfo.cost) * coinInfo.volumn;
-            strategyLogger('agree to sell ', coin, ' at ', price, 'erned', erned);
+            strategyLogger.info('agree to sell ', coin, ' at ', price, 'erned', erned);
 
             coinInfo.cost = 0;
             coinInfo.volumn = 0;

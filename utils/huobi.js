@@ -1,4 +1,3 @@
-const Agent = require('socks5-https-client/lib/Agent');
 const crypto = require('crypto');
 const moment = require('moment');
 const _ = require('lodash');
@@ -84,7 +83,6 @@ function getRequestOpt({url, method, queryStr, body}){
             'Accept-Language': 'zh-cn',
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
         },
-        agentClass: Agent,
         strictSSL: true,
         json: true
     }

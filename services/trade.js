@@ -24,6 +24,7 @@ module.exports = {
             return;
         }
         try{
+	    amount = Number(amount).toFixed(4);
             const url = `/v1/order/orders/place`;
             const method = 'POST';
             const body = {
@@ -33,12 +34,12 @@ module.exports = {
                 'symbol': symbol,
                 'type': action + '-market'
             };
-            huobiHandle()
+            tradeLogger.info(huobiHandle({url, method, body}));
             let res = await request.post(huobiHandle({url, method, body}));
             if(res.data){
                 tradeLogger.info(action, symbol, ' for ', amount, ' ret:', res.data );
             }else{
-                errorLogger.error('call ',action, ' api failed! res.data:', res.data);
+                errorLogger.error('call ',action, ' api failed! res.data:', res);
             }
         }catch(e){
             errorLogger.error('call ', action, ' api failed! catched: ', e);

@@ -21,7 +21,7 @@ module.exports = {
     async trade(action, symbol, amount, accountId){
         if(action != 'buy' && action != 'sell'){
             errorLogger.error("call trade with wrong action:" + action);
-            return;
+            return null;
         }
         try{
 	    amount = Number(amount).toFixed(4);
@@ -41,8 +41,10 @@ module.exports = {
             }else{
                 errorLogger.error('call ',action, ' api failed! res.data:', res);
             }
+	    return res.data;
         }catch(e){
             errorLogger.error('call ', action, ' api failed! catched: ', e);
+	    return null;
         }
     }
 }

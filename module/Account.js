@@ -54,7 +54,7 @@ module.exports = class{
             this.positions[key].cost = res[key].cost;
             this.positions[key].volumn = +res[key].volumn;
             this.positions[key].usdtInvested = res[key].usdtInvested;
-            this.totalUsdt += res[key].usdtInvested;
+            this.totalUsdt += +(res[key].usdtInvested);
         }
     }
 
@@ -64,7 +64,7 @@ module.exports = class{
         allBalances.forEach((coin)=>{
             if(coin.currency == 'usdt'){
                 this.usdtAvailable = coin.balance;
-                this.totalUsdt += coin.balance;
+                this.totalUsdt += +coin.balance;
             }else if(this.positions[coin.currency]){
                 this.positions[coin.currency].volumn = +coin.balance;
             }
@@ -91,27 +91,44 @@ module.exports = class{
             newInvested = (this.positionFirstAdd * coinInfo.hope) * this.usdtAvailable;
             positionAfterBuy = newInvested / this.totalUsdt;
         }
+	//最少交易1usdt
+	if(newInvested < 1){
+	    newInvested = 1;
+            positionAfterBuy = (newInvested / this.totalUsdt) + (+coinInfo.position);
+	}
 
         if(positionAfterBuy <= coinInfo.hope){
             strategyLogger.info('agree to buy ', coin, ' at ', price, ' positionAfterBuy:', positionAfterBuy, 'positionHope:', coinInfo.hope);
 
             //计算数据
-            const newVolumn = newInvested / price;
+            let newVolumn = newInvested / price;
+
+            //最少成交0.012个币(算上交易费)
+	    if(newVolumn < 0.012){
+                newVolumn = 0.012;
+                newInvested = newVolumn * price;
+                positionAfterBuy = (newInvested / this.totalUsdt) + (+coinInfo.position);
+            }
+
             const newCost = (coinInfo.cost * coinInfo.volumn + newInvested * (1 + (+this.tradeFee))) / (+coinInfo.volumn + (+newVolumn));
             coinInfo.cost = newCost;
             coinInfo.volumn += +newVolumn;
             coinInfo.usdtInvested += +newInvested;
             coinInfo.position = positionAfterBuy;
 
-            this.usdtAvailable -= (1 + (+this.tradeFee)) * newInvested;
+            let orderId = await Trade.trade('buy', coin + this.baseCoin, newInvested, this.id);
+	    if(orderId){
+	        await Position.update(coin, coinInfo);
+        	await Trade.write2DB(coin, 'buy', price, newVolumn);
 
-            await Trade.trade('buy', coin + this.baseCoin, newInvested, this.id);
-            Position.update(coin, coinInfo);
-            Trade.write2DB(coin, 'buy', price, newVolumn);
-
-            strategyLogger.info('buy down,', coin, price);
-            strategyLogger.info('usdtAvailable:', this.usdtAvailable);
-            return true;
+                this.usdtAvailable -= (1 + (+this.tradeFee)) * newInvested;
+                strategyLogger.info('buy down,', coin, price);
+                strategyLogger.info('usdtAvailable:', this.usdtAvailable);
+                return true;
+            }else{
+                strategyLogger.info('refuse to buy! cauze no orderId!');
+	        return false;
+            }
         }else{
             strategyLogger.info('refuse to buy! cauze hopePosition:', coinInfo.hope, ' afterBuy:', positionAfterBuy);
 	        return false;
@@ -120,32 +137,37 @@ module.exports = class{
 
     async sell(coin, price){
         let coinInfo = this.positions[coin];
-        if(price * (1 - this.tradeFee) > coinInfo.cost && coinInfo.position > 0){
+        if(coinInfo.volumn < 0.01){
+            strategyLogger.info('refuse to sell! cauze coin less than 0.01. real volumn:'. coinInfo.volumn);
+            return false;
+        }
+        if(price * (1 - this.tradeFee) > coinInfo.cost){
             const erned = (price * (1 - this.tradeFee) - coinInfo.cost) * coinInfo.volumn;
             strategyLogger.info('agree to sell ', coin, ' at ', price, 'erned', erned);
 
-            coinInfo.cost = 0;
-            coinInfo.volumn = 0;
-            coinInfo.usdtInvested = 0;
-            coinInfo.position = 0;
-            this.usdtAvailable += price * (1 - (+this.tradeFee)) * coinInfo.volumn;
             
-            await Trade.trade('sell', coin + this.baseCoin, coinInfo.volumn, this.id);
-            Position.update(coin, coinInfo);
-            Trade.write2DB(coin, 'sell', price, coinInfo.volumn);
-            this.totalEarned += +erned;
-
-            strategyLogger.info('sell down,', coin, price);
-            strategyLogger.info('usdtAvailable:', this.usdtAvailable);
-            strategyLogger.info('totalErned:', this.totalEarned);
-            return true;
-        }else{
-            if(coinInfo.position > 0){
-                strategyLogger.info('refuse to sell! cauze price<cose:', price * (1 - this.tradeFee), '<', coinInfo.cost);
+            let orderId = await Trade.trade('sell', coin + this.baseCoin, coinInfo.volumn, this.id);
+            if(orderId){
+                Trade.write2DB(coin, 'sell', price, coinInfo.volumn);
+                coinInfo.cost = 0;
+                coinInfo.volumn = 0;
+                coinInfo.usdtInvested = 0;
+                coinInfo.position = 0;
+                Position.update(coin, coinInfo);
+                this.totalEarned += +erned;
+            	this.usdtAvailable += price * (1 - (+this.tradeFee)) * coinInfo.volumn;
+                this.totalUsdt += +erned;
+                strategyLogger.info('sell down,', coin, price);
+                strategyLogger.info('usdtAvailable:', this.usdtAvailable);
+                strategyLogger.info('totalErned:', this.totalEarned);
+                return true;
             }else{
-                strategyLogger.info('refuse to sell! cauze no position for ', coin);
-            }            
-	        return false;
+                strategyLogger.info('refuse to sell! cauze no orderId!');
+		return false;
+	    }
+        }else{
+            strategyLogger.info('refuse to sell! cauze price<cose:', price * (1 - this.tradeFee), '<', coinInfo.cost);
+	    return false;
         }
     }
 }

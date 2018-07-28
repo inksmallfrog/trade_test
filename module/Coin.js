@@ -22,7 +22,7 @@ module.exports = class{
         }));
     }
 
-    async handle(message){
+    handle(message){
         if(message.ch){
             const currency = message.ch.split(".")[1];
             if(currency != this.key){ return false; }
@@ -49,14 +49,22 @@ module.exports = class{
             }
             
             if(res.buy && !this.buyLock){
-                this.buyLock = await this.account.buy(this.coinName, message.tick.close);
-                if(this.buyLock){
-	                setTimeout(() => {
-                        this.buyLock = false;
-                    }, 900 * 1000);
-                }
+		const buyPromise = new Promise(async (resolve, reject)=>{
+		    let buySucc = await this.account.buy(this.coinName, message.tick.close);
+			if(buySucc){
+			    resolve()
+			}else{
+			    reject()
+			}
+		});
+		buyPromise.then(()=>{	
+	            this.buyLock = true;
+	      	    setTimeout(() => {
+                    	this.buyLock = false;
+	            }, 900 * 1000);
+		}).catch(()=>{});
             }else if(this.buyLock){
-                strategyLogger.info('coin refused buy cauze buyLock');
+                strategyLogger.info('coin refused buy cauze buyLock', this.key, data);
             }
             if(res.sell){
                 this.account.sell(this.coinName, message.tick.close);
@@ -73,6 +81,7 @@ module.exports = class{
             this.subscribeKline();
             return true;
         }
+	return false;
     }
     subscribeKline(){
         ws.send(JSON.stringify({

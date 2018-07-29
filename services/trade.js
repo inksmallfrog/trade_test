@@ -24,7 +24,7 @@ module.exports = {
             return null;
         }
         try{
-	    amount = Number(amount).toFixed(4);
+	    amount = Number(amount - 0.00005).toFixed(4);
             const url = `/v1/order/orders/place`;
             const method = 'POST';
             const body = {

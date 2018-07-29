@@ -64,7 +64,7 @@ module.exports = class{
 	            }, 900 * 1000);
 		}).catch(()=>{});
             }else if(this.buyLock){
-                strategyLogger.info('coin refused buy cauze buyLock', this.key, data);
+                strategyLogger.info('coin refused buy cauze buyLock', this.key);
             }
             if(res.sell){
                 this.account.sell(this.coinName, message.tick.close);

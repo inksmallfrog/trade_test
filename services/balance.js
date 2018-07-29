@@ -8,9 +8,7 @@ module.exports = {
             const url = `/v1/account/accounts/${accountId}/balance`;
             let res = await request(huobiHandle({url}));
             if(res.data && res.data.list){
-                return res.data.list.filter((coinBalance)=>{
-                    return coinBalance.balance >= 0.01;
-                });        
+                return res.data.list.filter(coin => coin.type == 'trade');        
             }else{
                 return [];
             }

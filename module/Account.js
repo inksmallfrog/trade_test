@@ -44,6 +44,7 @@ module.exports = class{
 
         for(let key in this.positions){
             this.positions[key].position = (this.positions[key].usdtInvested / this.totalUsdt);
+	    await Position.update(key, this.positions[key]);
         }
     }
 
@@ -67,6 +68,7 @@ module.exports = class{
                 this.totalUsdt += +coin.balance;
             }else if(this.positions[coin.currency]){
                 this.positions[coin.currency].volumn = +coin.balance;
+		this.positions[coin.currency].usdtInvested = this.positions[coin.currency].cost * coin.balance;
             }
         })
     }
@@ -78,7 +80,7 @@ module.exports = class{
         let positionAfterBuy = 0;
         let newInvested = 0;
 
-        if(coinInfo.position > 0){  //加仓
+        if(coinInfo.volumn > 0.01){  //加仓
             if(coinInfo.cost <= price){
                 strategyLogger.info('refuse to buy! cauze price>=cost:' + price + '>=' + coinInfo.cost);
                 return false;
@@ -96,6 +98,10 @@ module.exports = class{
             newInvested = 1;
                 positionAfterBuy = (newInvested / this.totalUsdt) + (+coinInfo.position);
         }
+	if(this.usdtAvailable - newInvested < 0){
+	    strategyLogger.info('refuse to buy! no money!');
+	    return false;
+	}
 
         if(positionAfterBuy <= coinInfo.hope){
             strategyLogger.info('agree to buy ', coin, ' at ', price, ' positionAfterBuy:', positionAfterBuy, 'positionHope:', coinInfo.hope);
@@ -111,32 +117,33 @@ module.exports = class{
 
             let orderId = await Trade.trade('buy', coin + this.baseCoin, newInvested, this.id);
             if(orderId){
-                let realOrder = await Order.query(orderId);
-                if(realOrder.state == 'filled'){
-                    tradeLogger.log('trade buy down, id:', orderId, 
-                        " price:", realOrder.price, 
-                        " amount:", realOrder["field-amount"],
-                        " field-fees:", realOrder["field-fees"]);
+		setTimeout(async ()=>{
+                    let realOrder = await Order.query(orderId);
+                    if(realOrder.state == 'filled'){
+                        tradeLogger.log('trade buy down, id:', orderId, 
+                            " price:", realOrder.price, 
+                            " amount:", realOrder["field-amount"],
+                            " field-fees:", realOrder["field-fees"]);
 
-                    newInvested = +realOrder["field-cash-amount"];
-                    newVolumn = +realOrder["field-amount"];
+                        newInvested = +realOrder["field-cash-amount"];
+                        newVolumn = +realOrder["field-amount"];
 
-                    let newCost = (coinInfo.cost * coinInfo.volumn + newInvested) / (+coinInfo.volumn + newVolumn);
-                    coinInfo.cost = newCost;
-                    coinInfo.volumn += newVolumn;
-                    coinInfo.usdtInvested += newInvested;
-                    coinInfo.position = (newInvested / this.totalUsdt) + (+coinInfo.position);            
+                        let newCost = (coinInfo.cost * coinInfo.volumn + newInvested) / (+coinInfo.volumn + newVolumn);
+                        coinInfo.cost = newCost;
+                        coinInfo.volumn += newVolumn;
+                        coinInfo.usdtInvested += newInvested;
+                        coinInfo.position = (newInvested / this.totalUsdt) + (+coinInfo.position);            
 
-                    await Position.update(coin, coinInfo);
-                    await Trade.write2DB(coin, 'buy', price, newVolumn);
-                    this.usdtAvailable -= newInvested;
-                    strategyLogger.info('buy down,', coin, price);
-                    strategyLogger.info('usdtAvailable:', this.usdtAvailable);
-                    return true;
-                }else{
-                    tradeLogger.error('trade buy partial, id:', orderId, 'coin:', coin);    
-                    return false;
-                }
+                        await Position.update(coin, coinInfo);
+                        await Trade.write2DB(coin, 'buy', price, newVolumn);
+                        this.usdtAvailable -= newInvested;
+                        strategyLogger.info('buy down,', coin, price);
+                        strategyLogger.info('usdtAvailable:', this.usdtAvailable);
+                    }else{
+                        tradeLogger.error('trade buy partial, id:', orderId, 'coin:', coin);    
+                    }
+                }, 5000);
+		return true;
             }else{
                 strategyLogger.info('refuse to buy! cauze no orderId!');
                 return false;
@@ -150,7 +157,7 @@ module.exports = class{
     async sell(coin, price){
         let coinInfo = this.positions[coin];
         if(coinInfo.volumn < 0.01){
-            strategyLogger.info('refuse to sell! cauze coin less than 0.01. real volumn:'. coinInfo.volumn);
+            strategyLogger.info('refuse to sell! cauze coin less than 0.01. real volumn:', coinInfo.volumn);
             return false;
         }
         if(price * (1 - this.tradeFee) > coinInfo.cost){
@@ -159,42 +166,43 @@ module.exports = class{
 
             let orderId = await Trade.trade('sell', coin + this.baseCoin, coinInfo.volumn, this.id);
             if(orderId){
-                let realOrder = await Order.query(orderId);
-                if(realOrder.state == 'filled'){
-                    tradeLogger.log('trade sell down, id:', orderId, 
-                        " price:", realOrder.price, 
-                        " amount:", realOrder["field-amount"],
-                        " field-fees:", realOrder["field-fees"]);
+		setTimeout(async ()=>{
+                    let realOrder = await Order.query(orderId);
+                    if(realOrder.state == 'filled'){
+                        tradeLogger.log('trade sell down, id:', orderId, 
+                            " price:", realOrder.price, 
+                            " amount:", realOrder["field-amount"],
+                            " field-fees:", realOrder["field-fees"]);
 
-                    let usdt = +realOrder["field-cash-amount"] - realOrder["field-fees"];
-                    let volumn = +realOrder["field-amount"];
+                        let usdt = +realOrder["field-cash-amount"] - realOrder["field-fees"];
+                        let volumn = +realOrder["field-amount"];
 
-                    this.usdtAvailable += usdt;
-                    let erned = usdt - volumn * coinInfo.cost;
-                    this.totalEarned += erned;
-                    this.totalUsdt += erned;
+                        this.usdtAvailable += usdt;
+                        let erned = usdt - volumn * coinInfo.cost;
+                        this.totalEarned += erned;
+                        this.totalUsdt += erned;
 
-                    coinInfo.volumn -= volumn;
-                    coinInfo.usdtInvested = coinInfo.volumn * coinInfo.cost;
-                    coinInfo.position = coinInfo.usdtInvested / this.totalUsdt;
-                    await Position.update(coin, coinInfo);
-                    await Trade.write2DB(coin, 'sell', price, coinInfo.volumn);
-                    strategyLogger.info('sell down,', coin, realOrder.price);
-                    strategyLogger.info('erned:', erned);
-                    strategyLogger.info('usdtAvailable:', this.usdtAvailable);
-                    strategyLogger.info('totalErned:', this.totalEarned);
-                    return true;
-                }else{
-                    tradeLogger.error('trade sell partial, id:', orderId, 'coin:', coin);    
-                    return false;
-                }
+                        coinInfo.volumn -= volumn;
+                        coinInfo.usdtInvested = coinInfo.volumn * coinInfo.cost;
+                        coinInfo.position = coinInfo.usdtInvested / this.totalUsdt;
+                        await Position.update(coin, coinInfo);
+                        await Trade.write2DB(coin, 'sell', price, coinInfo.volumn);
+                        strategyLogger.info('sell down,', coin, realOrder.price);
+                        strategyLogger.info('erned:', erned);
+                        strategyLogger.info('usdtAvailable:', this.usdtAvailable);
+                        strategyLogger.info('totalErned:', this.totalEarned);
+                    }else{
+                        tradeLogger.error('trade sell partial, id:', orderId, 'coin:', coin);    
+                    }
+                }, 5000);
+                return true;
             }else{
                 strategyLogger.info('refuse to sell! cauze no orderId!');
-		        return false;
-	        }
+	        return false;
+	    }
         }else{
             strategyLogger.info('refuse to sell! cauze price<cose:', price * (1 - this.tradeFee), '<', coinInfo.cost);
-	        return false;
+	    return false;
         }
     }
 }

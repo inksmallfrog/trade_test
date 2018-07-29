@@ -34,7 +34,6 @@ module.exports = {
                 'symbol': symbol,
                 'type': action + '-market'
             };
-            tradeLogger.info(huobiHandle({url, method, body}));
             let res = await request.post(huobiHandle({url, method, body}));
             if(res.data){
                 tradeLogger.info(action, symbol, ' for ', amount, ' ret:', res.data );

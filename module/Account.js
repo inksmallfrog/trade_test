@@ -64,7 +64,7 @@ module.exports = class{
         const allBalances = await Balance.query(this.id);
         allBalances.forEach((coin)=>{
             if(coin.currency == 'usdt'){
-                this.usdtAvailable = coin.balance;
+                this.usdtAvailable = +coin.balance;
                 this.totalUsdt += +coin.balance;
             }else if(this.positions[coin.currency]){
                 this.positions[coin.currency].volumn = +coin.balance;
@@ -139,6 +139,7 @@ module.exports = class{
                         this.usdtAvailable -= newInvested;
                         strategyLogger.info('buy down,', coin, price);
                         strategyLogger.info('usdtAvailable:', this.usdtAvailable);
+			await this.calPosition();
                     }else{
                         tradeLogger.error('trade buy partial, id:', orderId, 'coin:', coin);    
                     }
@@ -191,6 +192,7 @@ module.exports = class{
                         strategyLogger.info('erned:', erned);
                         strategyLogger.info('usdtAvailable:', this.usdtAvailable);
                         strategyLogger.info('totalErned:', this.totalEarned);
+			await this.calPosition();
                     }else{
                         tradeLogger.error('trade sell partial, id:', orderId, 'coin:', coin);    
                     }
